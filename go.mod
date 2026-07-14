@@ -1,4 +1,4 @@
-module github.com/fedorwk/tastream
+module github.com/fedorwk/ta-go
 
 go 1.23.2
 

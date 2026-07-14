@@ -1,6 +1,6 @@
 # ta
 
-Push-based technical analysis indicators in Go. Import as `ta "github.com/fedorwk/tastream"`.
+Push-based technical analysis indicators in Go. Import as `ta "github.com/fedorwk/ta-go"`.
 
 ## Indicators
 
