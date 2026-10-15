@@ -56,7 +56,7 @@ func MustNewEMA(period int) *EMA {
 	return ema
 }
 
-// Update consumes a value and returns the EMA once enough values are available.
+// Process consumes a value and returns the EMA once enough values are available.
 func (e *EMA) Process(v float64) (float64, bool) {
 	return e.state.Push(v)
 }

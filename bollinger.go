@@ -8,8 +8,8 @@ type Bollinger struct {
 	stddev float64
 
 	window []float64
-	sum    float64
-	sumsq  float64
+	mean   float64
+	m2     float64 // sum of squared deviations from mean over the window
 	count  int
 	idx    int
 }
@@ -45,43 +45,65 @@ func MustNewBollinger(period int, stddev float64) *Bollinger {
 	return bb
 }
 
-// Update consumes a value and returns Bollinger Bands once enough values are available.
+// Process consumes a value and returns Bollinger Bands once enough values are available.
+//
+// The mean and sum of squared deviations are maintained with a sliding-window
+// form of Welford's algorithm, which stays accurate when the values are large
+// relative to their spread. They are recomputed exactly from the window each
+// time it wraps, so rounding error cannot accumulate over long streams.
 func (b *Bollinger) Process(v float64) (Bands, bool) {
 	if b.count < b.period {
 		b.window[b.count] = v
-		b.sum += v
-		b.sumsq += v * v
 		b.count++
-		if b.count == b.period {
-			return bollingerBands(b.sum, b.sumsq, b.period, b.stddev), true
+		delta := v - b.mean
+		b.mean += delta / float64(b.count)
+		b.m2 += delta * (v - b.mean)
+		if b.count < b.period {
+			return Bands{}, false
 		}
-		return Bands{}, false
+		return b.bands(), true
 	}
 
 	old := b.window[b.idx]
-	b.sum -= old
-	b.sumsq -= old * old
 	b.window[b.idx] = v
-	b.sum += v
-	b.sumsq += v * v
 	b.idx++
 	if b.idx == b.period {
 		b.idx = 0
+		b.recompute()
+		return b.bands(), true
 	}
 
-	return bollingerBands(b.sum, b.sumsq, b.period, b.stddev), true
+	oldMean := b.mean
+	b.mean += (v - old) / float64(b.period)
+	b.m2 += (v - old) * (v - b.mean + old - oldMean)
+	if b.m2 < 0 {
+		b.m2 = 0
+	}
+
+	return b.bands(), true
 }
 
-func bollingerBands(sum, sumsq float64, period int, stddev float64) Bands {
-	mean := sum / float64(period)
-	variance := (sumsq / float64(period)) - (mean * mean)
-	if variance < 0 {
-		variance = 0
+// recompute sets mean and m2 from the window with a two-pass computation.
+func (b *Bollinger) recompute() {
+	sum := 0.0
+	for _, x := range b.window {
+		sum += x
 	}
-	sd := math.Sqrt(variance)
+	b.mean = sum / float64(b.period)
+	b.m2 = 0
+	for _, x := range b.window {
+		d := x - b.mean
+		b.m2 += d * d
+	}
+}
+
+// bands returns the bands for the current window using population variance,
+// as TA-Lib's BBANDS does.
+func (b *Bollinger) bands() Bands {
+	sd := math.Sqrt(b.m2 / float64(b.period))
 	return Bands{
-		Upper:  mean + stddev*sd,
-		Middle: mean,
-		Lower:  mean - stddev*sd,
+		Upper:  b.mean + b.stddev*sd,
+		Middle: b.mean,
+		Lower:  b.mean - b.stddev*sd,
 	}
 }

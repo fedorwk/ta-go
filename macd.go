@@ -1,16 +1,17 @@
 package ta
 
 // MACD computes the Moving Average Convergence Divergence.
+//
+// Values match TA-Lib: both EMAs and the signal line are seeded with simple
+// averages, and the fast EMA is seeded with the mean of the fast-period values
+// ending where the slow EMA becomes ready, so both lines start on the same
+// input. The first value is emitted after slow+signal-1 inputs.
 type MACD struct {
-	fast          int
-	slow          int
-	signalPeriod  int
-	fastEMA       *emaState
-	slowEMA       *emaState
-	signalAlpha   float64
-	signal        float64
-	signalCount   int
-	seenFirstMACD bool
+	fastSeed  *smaState // rolling mean used to seed the fast EMA; nil once seeded
+	fastAlpha float64
+	fast      float64
+	slowEMA   *emaState
+	signalEMA *emaState
 }
 
 // MACDValue contains the MACD line, signal line, and histogram.
@@ -26,12 +27,10 @@ func NewMACD(fast, slow, signal int) (*MACD, error) {
 		return nil, ErrInvalidMACDPeriods
 	}
 	return &MACD{
-		fast:         fast,
-		slow:         slow,
-		signalPeriod: signal,
-		fastEMA:      newEMAState(fast),
-		slowEMA:      newEMAState(slow),
-		signalAlpha:  2 / (float64(signal) + 1),
+		fastSeed:  newSMAState(fast),
+		fastAlpha: 2 / (float64(fast) + 1),
+		slowEMA:   newEMAState(slow),
+		signalEMA: newEMAState(signal),
 	}, nil
 }
 
@@ -44,29 +43,28 @@ func MustNewMACD(fast, slow, signal int) *MACD {
 	return macd
 }
 
-// Update consumes a value and returns a MACDValue once enough values are available.
+// Process consumes a value and returns a MACDValue once enough values are available.
 func (m *MACD) Process(v float64) (MACDValue, bool) {
-	fast, fastReady := m.fastEMA.Push(v)
 	slow, slowReady := m.slowEMA.Push(v)
-	if !fastReady || !slowReady {
-		return MACDValue{}, false
+	if m.fastSeed != nil {
+		seed, _ := m.fastSeed.Push(v)
+		if !slowReady {
+			return MACDValue{}, false
+		}
+		m.fast = seed
+		m.fastSeed = nil
+	} else {
+		m.fast = (v-m.fast)*m.fastAlpha + m.fast
 	}
 
-	macd := fast - slow
-	if !m.seenFirstMACD {
-		m.seenFirstMACD = true
+	macd := m.fast - slow
+	signal, ok := m.signalEMA.Push(macd)
+	if !ok {
 		return MACDValue{}, false
 	}
-
-	m.signal = (macd-m.signal)*m.signalAlpha + m.signal
-	m.signalCount++
-	if m.signalCount < m.signalPeriod-1 {
-		return MACDValue{}, false
-	}
-
 	return MACDValue{
 		MACD:   macd,
-		Signal: m.signal,
-		Hist:   macd - m.signal,
+		Signal: signal,
+		Hist:   macd - signal,
 	}, true
 }

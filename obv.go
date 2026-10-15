@@ -17,7 +17,7 @@ func MustNewOBV() *OBV {
 	return NewOBV()
 }
 
-// Update consumes an OHLCV value and returns the running OBV.
+// Process consumes an OHLCV value and returns the running OBV.
 func (o *OBV) Process(v OHLCV) (float64, bool) {
 	if !o.hasPrev {
 		o.obv = v.Volume

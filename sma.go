@@ -61,7 +61,7 @@ func MustNewSMA(period int) *SMA {
 	return sma
 }
 
-// Update consumes a value and returns the SMA once enough values are available.
+// Process consumes a value and returns the SMA once enough values are available.
 func (s *SMA) Process(v float64) (float64, bool) {
 	return s.state.Push(v)
 }

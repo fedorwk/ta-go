@@ -30,7 +30,7 @@ func MustNewATR(period int) *ATR {
 	return atr
 }
 
-// Update consumes an OHLC value and returns the ATR once enough values are available.
+// Process consumes an OHLC value and returns the ATR once enough values are available.
 func (a *ATR) Process(v OHLC) (float64, bool) {
 	if !a.hasPrev {
 		a.prevClose = v.Close

@@ -65,7 +65,7 @@ func MustNewWMA(period int) *WMA {
 	return wma
 }
 
-// Update consumes a value and returns the WMA once enough values are available.
+// Process consumes a value and returns the WMA once enough values are available.
 func (w *WMA) Process(v float64) (float64, bool) {
 	return w.state.Push(v)
 }

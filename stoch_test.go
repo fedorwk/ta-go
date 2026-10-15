@@ -7,27 +7,24 @@ import (
 )
 
 func TestStoch(t *testing.T) {
-	input := []OHLC{
-		{Open: 10, High: 12, Low: 9, Close: 11},
-		{Open: 11, High: 13, Low: 10, Close: 12},
-		{Open: 12, High: 14, Low: 11, Close: 13},
-		{Open: 11, High: 15, Low: 10, Close: 14},
-		{Open: 13, High: 16, Low: 12, Close: 15},
-		{Open: 14, High: 17, Low: 13, Close: 16},
-	}
-	got := apply(input, MustNewStoch(3, 3).Process)
+	input := randomOHLC(1, 300)
 	high, low, close := ohlcToHighLowClose(input)
-	k, d := talib.Stoch(high, low, close, 3, 1, talib.SMA, 3, talib.SMA)
-	want := make([]StochValue, len(got))
-	k = tail(k, len(got))
-	d = tail(d, len(got))
-	for i := range k {
-		want[i] = StochValue{K: k[i], D: d[i]}
-	}
-	if len(got) != len(want) {
-		t.Fatalf("length mismatch: got %d want %d", len(got), len(want))
-	}
-	for i := range got {
-		assertFloatSliceApprox(t, []float64{got[i].K, got[i].D}, []float64{want[i].K, want[i].D}, 1e-9)
+	for _, tc := range []struct{ k, d int }{
+		{14, 3},
+		{5, 3},
+		{3, 1},
+		{1, 2},
+	} {
+		got := apply(input, MustNewStoch(tc.k, tc.d).Process)
+		gotK := make([]float64, len(got))
+		gotD := make([]float64, len(got))
+		for i, v := range got {
+			gotK[i], gotD[i] = v.K, v.D
+		}
+		// %K is passed through unsmoothed (slow-K period 1), matching Stoch.
+		k, d := talib.Stoch(high, low, close, tc.k, 1, talib.SMA, tc.d, talib.SMA)
+		lookback := tc.k - 1 + tc.d - 1
+		assertAlignedApprox(t, gotK, k, lookback, 1e-9)
+		assertAlignedApprox(t, gotD, d, lookback, 1e-9)
 	}
 }

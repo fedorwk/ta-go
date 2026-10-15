@@ -16,7 +16,7 @@ func MustNewVWAP() *VWAP {
 	return NewVWAP()
 }
 
-// Update consumes an OHLCV value and returns the running VWAP.
+// Process consumes an OHLCV value and returns the running VWAP.
 func (v *VWAP) Process(value OHLCV) (float64, bool) {
 	typicalPrice := (value.High + value.Low + value.Close) / 3
 	v.cumulativePV += typicalPrice * value.Volume

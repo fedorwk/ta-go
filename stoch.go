@@ -39,7 +39,7 @@ func MustNewStoch(kPeriod, dPeriod int) *Stoch {
 	return st
 }
 
-// Update consumes an OHLC value and returns %K/%D once enough values are available.
+// Process consumes an OHLC value and returns %K/%D once enough values are available.
 func (s *Stoch) Process(v OHLC) (StochValue, bool) {
 	if s.count < s.kPeriod {
 		s.window[s.count] = v

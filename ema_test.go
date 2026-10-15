@@ -7,8 +7,9 @@ import (
 )
 
 func TestEMA(t *testing.T) {
-	input := []float64{1, 2, 3, 4, 5}
-	got := apply(input, MustNewEMA(3).Process)
-	want := tail(talib.Ema(input, 3), len(got))
-	assertFloatSliceApprox(t, got, want, 1e-9)
+	input := randomWalk(1, 300)
+	for _, period := range []int{1, 2, 3, 14, 50} {
+		got := apply(input, MustNewEMA(period).Process)
+		assertAlignedApprox(t, got, talib.Ema(input, period), period-1, 1e-9)
+	}
 }

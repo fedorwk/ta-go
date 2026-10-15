@@ -7,15 +7,10 @@ import (
 )
 
 func TestATR(t *testing.T) {
-	input := []OHLC{
-		{Open: 10, High: 12, Low: 9, Close: 11},
-		{Open: 11, High: 13, Low: 10, Close: 12},
-		{Open: 12, High: 14, Low: 11, Close: 13},
-		{Open: 13, High: 15, Low: 12, Close: 14},
-		{Open: 14, High: 16, Low: 13, Close: 15},
-	}
-	got := apply(input, MustNewATR(3).Process)
+	input := randomOHLC(1, 300)
 	high, low, close := ohlcToHighLowClose(input)
-	want := tail(talib.Atr(high, low, close, 3), len(got))
-	assertFloatSliceApprox(t, got, want, 1e-9)
+	for _, period := range []int{1, 2, 3, 14, 50} {
+		got := apply(input, MustNewATR(period).Process)
+		assertAlignedApprox(t, got, talib.Atr(high, low, close, period), period, 1e-9)
+	}
 }

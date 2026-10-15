@@ -30,7 +30,7 @@ func MustNewRSI(period int) *RSI {
 	return rsi
 }
 
-// Update consumes a value and returns the RSI once enough values are available.
+// Process consumes a value and returns the RSI once enough values are available.
 func (r *RSI) Process(v float64) (float64, bool) {
 	if !r.hasPrev {
 		r.prev = v
