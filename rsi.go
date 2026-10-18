@@ -2,15 +2,10 @@ package ta
 
 // RSI computes the Relative Strength Index over a fixed period.
 type RSI struct {
-	period  int
 	prev    float64
 	hasPrev bool
-	gains   float64
-	losses  float64
-	count   int
-	avgGain float64
-	avgLoss float64
-	ready   bool
+	gain    *wilderState
+	loss    *wilderState
 }
 
 // NewRSI constructs an RSI with the given period.
@@ -18,7 +13,7 @@ func NewRSI(period int) (*RSI, error) {
 	if period <= 0 {
 		return nil, ErrInvalidPeriod
 	}
-	return &RSI{period: period}, nil
+	return &RSI{gain: newWilderState(period), loss: newWilderState(period)}, nil
 }
 
 // MustNewRSI constructs an RSI or panics if the period is invalid.
@@ -49,22 +44,12 @@ func (r *RSI) Process(v float64) (float64, bool) {
 		loss = -diff
 	}
 
-	if !r.ready {
-		r.gains += gain
-		r.losses += loss
-		r.count++
-		if r.count == r.period {
-			r.avgGain = r.gains / float64(r.period)
-			r.avgLoss = r.losses / float64(r.period)
-			r.ready = true
-			return rsiFromAvg(r.avgGain, r.avgLoss), true
-		}
+	avgGain, ready := r.gain.Push(gain)
+	avgLoss, _ := r.loss.Push(loss)
+	if !ready {
 		return 0, false
 	}
-
-	r.avgGain = (r.avgGain*float64(r.period-1) + gain) / float64(r.period)
-	r.avgLoss = (r.avgLoss*float64(r.period-1) + loss) / float64(r.period)
-	return rsiFromAvg(r.avgGain, r.avgLoss), true
+	return rsiFromAvg(avgGain, avgLoss), true
 }
 
 func rsiFromAvg(avgGain, avgLoss float64) float64 {
@@ -79,4 +64,11 @@ func rsiFromAvg(avgGain, avgLoss float64) float64 {
 	}
 	rs := avgGain / avgLoss
 	return 100 - (100 / (1 + rs))
+}
+
+// Reset returns the RSI to its newly constructed state.
+func (r *RSI) Reset() {
+	r.prev, r.hasPrev = 0, false
+	r.gain.Reset()
+	r.loss.Reset()
 }

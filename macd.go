@@ -7,7 +7,8 @@ package ta
 // ending where the slow EMA becomes ready, so both lines start on the same
 // input. The first value is emitted after slow+signal-1 inputs.
 type MACD struct {
-	fastSeed  *smaState // rolling mean used to seed the fast EMA; nil once seeded
+	fastSeed  *smaState // rolling mean used to seed the fast EMA
+	fastReady bool      // whether the fast EMA has been seeded
 	fastAlpha float64
 	fast      float64
 	slowEMA   *emaState
@@ -46,13 +47,13 @@ func MustNewMACD(fast, slow, signal int) *MACD {
 // Process consumes a value and returns a MACDValue once enough values are available.
 func (m *MACD) Process(v float64) (MACDValue, bool) {
 	slow, slowReady := m.slowEMA.Push(v)
-	if m.fastSeed != nil {
+	if !m.fastReady {
 		seed, _ := m.fastSeed.Push(v)
 		if !slowReady {
 			return MACDValue{}, false
 		}
 		m.fast = seed
-		m.fastSeed = nil
+		m.fastReady = true
 	} else {
 		m.fast = (v-m.fast)*m.fastAlpha + m.fast
 	}
@@ -67,4 +68,13 @@ func (m *MACD) Process(v float64) (MACDValue, bool) {
 		Signal: signal,
 		Hist:   macd - signal,
 	}, true
+}
+
+// Reset returns the MACD to its newly constructed state.
+func (m *MACD) Reset() {
+	m.fastSeed.Reset()
+	m.fastReady = false
+	m.fast = 0
+	m.slowEMA.Reset()
+	m.signalEMA.Reset()
 }

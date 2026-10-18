@@ -4,13 +4,9 @@ import "math"
 
 // ATR computes the Average True Range over a fixed period.
 type ATR struct {
-	period    int
 	prevClose float64
 	hasPrev   bool
-	trSum     float64
-	count     int
-	atr       float64
-	ready     bool
+	state     *wilderState
 }
 
 // NewATR constructs an ATR with the given period.
@@ -18,7 +14,7 @@ func NewATR(period int) (*ATR, error) {
 	if period <= 0 {
 		return nil, ErrInvalidPeriod
 	}
-	return &ATR{period: period}, nil
+	return &ATR{state: newWilderState(period)}, nil
 }
 
 // MustNewATR constructs an ATR or panics if parameters are invalid.
@@ -38,22 +34,21 @@ func (a *ATR) Process(v OHLC) (float64, bool) {
 		return 0, false
 	}
 
-	tr := v.High - v.Low
-	tr = math.Max(tr, math.Abs(v.High-a.prevClose))
-	tr = math.Max(tr, math.Abs(v.Low-a.prevClose))
+	tr := trueRange(v, a.prevClose)
 	a.prevClose = v.Close
+	return a.state.Push(tr)
+}
 
-	if !a.ready {
-		a.trSum += tr
-		a.count++
-		if a.count == a.period {
-			a.atr = a.trSum / float64(a.period)
-			a.ready = true
-			return a.atr, true
-		}
-		return 0, false
-	}
+// trueRange returns the greatest of the candle's range and its distances from
+// the previous close.
+func trueRange(v OHLC, prevClose float64) float64 {
+	tr := v.High - v.Low
+	tr = math.Max(tr, math.Abs(v.High-prevClose))
+	return math.Max(tr, math.Abs(v.Low-prevClose))
+}
 
-	a.atr = (a.atr*float64(a.period-1) + tr) / float64(a.period)
-	return a.atr, true
+// Reset returns the ATR to its newly constructed state.
+func (a *ATR) Reset() {
+	a.prevClose, a.hasPrev = 0, false
+	a.state.Reset()
 }

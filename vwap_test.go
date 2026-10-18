@@ -27,3 +27,15 @@ func vwapReference(input []OHLCV) []float64 {
 
 	return result
 }
+
+// Reset starts a new session: VWAP then covers only the session's candles.
+func TestVWAPSession(t *testing.T) {
+	input := randomCandles(1, 300)
+	vwap := MustNewVWAP()
+	for start := 0; start < len(input); start += 100 {
+		session := input[start : start+100]
+		vwap.Reset()
+		got := apply(session, vwap.Process)
+		assertAlignedApprox(t, got, vwapReference(session), 0, 1e-9)
+	}
+}

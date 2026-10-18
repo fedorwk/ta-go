@@ -44,6 +44,11 @@ func (s *smaState) Push(v float64) (float64, bool) {
 	return s.sum / float64(s.period), true
 }
 
+// Reset empties the window.
+func (s *smaState) Reset() {
+	s.sum, s.count, s.idx = 0, 0, 0
+}
+
 // NewSMA constructs an SMA with the given period.
 func NewSMA(period int) (*SMA, error) {
 	if period <= 0 {
@@ -64,4 +69,9 @@ func MustNewSMA(period int) *SMA {
 // Process consumes a value and returns the SMA once enough values are available.
 func (s *SMA) Process(v float64) (float64, bool) {
 	return s.state.Push(v)
+}
+
+// Reset returns the SMA to its newly constructed state.
+func (s *SMA) Reset() {
+	s.state.Reset()
 }

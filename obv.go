@@ -35,3 +35,9 @@ func (o *OBV) Process(v OHLCV) (float64, bool) {
 	o.prevClose = v.Close
 	return o.obv, true
 }
+
+// Reset returns OBV to its newly constructed state, so the next value
+// starts a new running total.
+func (o *OBV) Reset() {
+	o.prevClose, o.hasPrev, o.obv = 0, false, 0
+}
