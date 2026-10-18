@@ -48,6 +48,11 @@ func (w *wmaState) Push(v float64) (float64, bool) {
 	return w.weighted / w.denom, true
 }
 
+// Reset empties the window.
+func (w *wmaState) Reset() {
+	w.count, w.idx, w.sum, w.weighted = 0, 0, 0, 0
+}
+
 // NewWMA constructs a WMA with the given period.
 func NewWMA(period int) (*WMA, error) {
 	if period <= 0 {
@@ -65,7 +70,12 @@ func MustNewWMA(period int) *WMA {
 	return wma
 }
 
-// Update consumes a value and returns the WMA once enough values are available.
+// Process consumes a value and returns the WMA once enough values are available.
 func (w *WMA) Process(v float64) (float64, bool) {
 	return w.state.Push(v)
+}
+
+// Reset returns the WMA to its newly constructed state.
+func (w *WMA) Reset() {
+	w.state.Reset()
 }

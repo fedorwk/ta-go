@@ -7,12 +7,10 @@ import (
 )
 
 func TestOBV(t *testing.T) {
-	input := []OHLCV{
-		{Open: 10, High: 12, Low: 9, Close: 10, Volume: 100},
-		{Open: 10, High: 13, Low: 10, Close: 11, Volume: 200},
-		{Open: 11, High: 12, Low: 9, Close: 10, Volume: 300},
-		{Open: 10, High: 11, Low: 9, Close: 10, Volume: 400},
-		{Open: 10, High: 14, Low: 10, Close: 12, Volume: 500},
+	input := randomCandles(1, 300)
+	// Repeat some closes so the unchanged-close branch is exercised.
+	for i := 10; i < len(input); i += 10 {
+		input[i].Close = input[i-1].Close
 	}
 	got := apply(input, MustNewOBV().Process)
 
@@ -22,6 +20,5 @@ func TestOBV(t *testing.T) {
 		closes[i] = v.Close
 		volumes[i] = v.Volume
 	}
-	want := tail(talib.Obv(closes, volumes), len(got))
-	assertFloatSliceApprox(t, got, want, 1e-9)
+	assertAlignedApprox(t, got, talib.Obv(closes, volumes), 0, 1e-9)
 }

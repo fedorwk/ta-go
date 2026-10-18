@@ -17,7 +17,7 @@ func MustNewOBV() *OBV {
 	return NewOBV()
 }
 
-// Update consumes an OHLCV value and returns the running OBV.
+// Process consumes an OHLCV value and returns the running OBV.
 func (o *OBV) Process(v OHLCV) (float64, bool) {
 	if !o.hasPrev {
 		o.obv = v.Volume
@@ -34,4 +34,10 @@ func (o *OBV) Process(v OHLCV) (float64, bool) {
 
 	o.prevClose = v.Close
 	return o.obv, true
+}
+
+// Reset returns OBV to its newly constructed state, so the next value
+// starts a new running total.
+func (o *OBV) Reset() {
+	o.prevClose, o.hasPrev, o.obv = 0, false, 0
 }

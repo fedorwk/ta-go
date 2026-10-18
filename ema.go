@@ -39,6 +39,11 @@ func (e *emaState) Push(v float64) (float64, bool) {
 	return e.value, true
 }
 
+// Reset discards all values pushed so far.
+func (e *emaState) Reset() {
+	e.count, e.sum, e.value, e.ready = 0, 0, 0, false
+}
+
 // NewEMA constructs an EMA with the given period.
 func NewEMA(period int) (*EMA, error) {
 	if period <= 0 {
@@ -56,7 +61,12 @@ func MustNewEMA(period int) *EMA {
 	return ema
 }
 
-// Update consumes a value and returns the EMA once enough values are available.
+// Process consumes a value and returns the EMA once enough values are available.
 func (e *EMA) Process(v float64) (float64, bool) {
 	return e.state.Push(v)
+}
+
+// Reset returns the EMA to its newly constructed state.
+func (e *EMA) Reset() {
+	e.state.Reset()
 }
