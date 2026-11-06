@@ -102,3 +102,17 @@ func BenchmarkZScore(b *testing.B) {
 		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewZScore(p), input) })
 	}
 }
+
+func BenchmarkLogReturn(b *testing.B) {
+	input := randomWalk(1, 4096)
+	for _, p := range benchPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewLogReturn(p), input) })
+	}
+}
+
+func BenchmarkRealizedVol(b *testing.B) {
+	input := randomWalk(1, 4096)
+	for _, p := range benchPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewRealizedVol(p), input) })
+	}
+}
