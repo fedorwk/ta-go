@@ -5,6 +5,7 @@ Push-based technical analysis indicators in Go. Import as `ta "github.com/fedorw
 ## Indicators
 
 - Window primitives: Max, Min, Sum, Lag, TrueRange
+- Statistics: Median, MAD, PercentRank
 - Moving averages: SMA, WMA, EMA, and MA with a selectable type (including Wilder's RMA)
 - Momentum: RSI, MACD, Stochastic Oscillator (fast and full), Stochastic RSI, Williams %R, CCI, ROC, Momentum
 - Trend: ADX with +DI/-DI
