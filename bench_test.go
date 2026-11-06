@@ -142,6 +142,13 @@ func BenchmarkRelVolume(b *testing.B) {
 	}
 }
 
+func BenchmarkVWAPPeriod(b *testing.B) {
+	input := randomCandles(1, 4096)
+	for _, p := range benchPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewVWAPPeriod(p), input) })
+	}
+}
+
 func BenchmarkLinRegSlope(b *testing.B) {
 	input := randomWalk(1, 4096)
 	for _, p := range benchPeriods {
