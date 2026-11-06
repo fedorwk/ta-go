@@ -79,6 +79,7 @@ func TestReset(t *testing.T) {
 
 	t.Run("OBV", testReset(func() resettable[OHLCV, float64] { return MustNewOBV() }, ohlcv))
 	t.Run("VWAP", testReset(func() resettable[OHLCV, float64] { return MustNewVWAP() }, ohlcv))
+	t.Run("VWAPPeriod", testReset(func() resettable[OHLCV, float64] { return MustNewVWAPPeriod(14) }, ohlcv))
 	t.Run("RelVolume", testReset(func() resettable[OHLCV, float64] { return MustNewRelVolume(14) }, ohlcv))
 	t.Run("MFI", testReset(func() resettable[OHLCV, float64] { return MustNewMFI(14) }, ohlcv))
 

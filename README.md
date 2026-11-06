@@ -10,7 +10,7 @@ Push-based technical analysis indicators in Go. Import as `ta "github.com/fedorw
 - Momentum: RSI, MACD, Stochastic Oscillator (fast and full), Stochastic RSI, Williams %R, CCI, ROC, LogReturn, Momentum
 - Trend: ADX with +DI/-DI
 - Volatility: ATR, Bollinger Bands, Donchian Channels, StdDev, RealizedVol
-- Volume: OBV, VWAP, MFI
+- Volume: OBV, VWAP, VWAPPeriod, MFI
 - Bar features: CLV, EfficiencyRatio, RangeExpansion, RelVolume
 - Regression: LinRegSlope, Regression, Correl
 
@@ -79,6 +79,8 @@ for _, c := range candles {
     // ...
 }
 ```
+
+`VWAP` is cumulative: it covers every candle since construction or the last `Reset`, so it suits a VWAP anchored at a session open or an event. For a rolling VWAP, use `VWAPPeriod(period)`, which covers the last `period` candles and is ready from candle `period`. When those candles traded nothing, it returns the current candle's typical price.
 
 The processor that `Chain` returns also has a `Reset` method, which resets each stage that has one. Reach it with `p.(interface{ Reset() })`.
 

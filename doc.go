@@ -8,8 +8,9 @@
 // structs.
 //
 // Every indicator has a Reset method that returns it to its newly
-// constructed state, for example to start a new VWAP session. Indicators
-// that smooth with a configurable moving average take an MAType.
+// constructed state, for example to start a new VWAP session; VWAPPeriod is
+// the rolling alternative, over the last period candles. Indicators that
+// smooth with a configurable moving average take an MAType.
 //
 // Chain composes processors, and Source adapts OHLC candles to indicators
 // that consume plain values. The window primitives Max, Min, Sum, Lag and
