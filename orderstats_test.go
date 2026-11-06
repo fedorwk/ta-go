@@ -125,6 +125,29 @@ func TestMAD(t *testing.T) {
 	}
 }
 
+// TestMADSelection checks the binary-search selection in sortedWindow.mad at
+// every small period and some large ones, on windows whose deviations are
+// lopsided (a trending walk puts most values on one side of the median) or
+// tied.
+func TestMADSelection(t *testing.T) {
+	r := rand.New(rand.NewSource(4))
+	trend := make([]float64, 2000)
+	ties := make([]float64, 2000)
+	for i := range trend {
+		trend[i] = float64(i) + r.ExpFloat64()*float64(i%7)
+		ties[i] = float64(r.Intn(3))
+	}
+	periods := []int{4, 5, 6, 7, 8, 9, 10, 11, 390, 391}
+	for name, input := range map[string][]float64{"trend": trend, "ties": ties} {
+		for _, period := range periods {
+			t.Run(fmt.Sprintf("%s/period=%d", name, period), func(t *testing.T) {
+				got := apply(input, MustNewMAD(period).Process)
+				assertAlignedApprox(t, got, bruteWindows(input, period, bruteMAD), period-1, 0)
+			})
+		}
+	}
+}
+
 func TestPercentRank(t *testing.T) {
 	for name, input := range orderStatInputs() {
 		for _, period := range orderStatTestPeriods {

@@ -1,6 +1,9 @@
 package ta
 
-import "sort"
+import (
+	"math"
+	"sort"
+)
 
 // sortedWindow holds the last period values both in arrival order and sorted,
 // so that order statistics of the window are available after each value.
@@ -80,30 +83,62 @@ func (w *sortedWindow) median() float64 {
 	return midpoint(w.sorted[n/2-1], w.sorted[n/2])
 }
 
-// mad returns the median of |x - m| over the window. It walks outward from
-// m, taking the smaller deviation on either side at each step, so the
-// deviations come out in ascending order and the walk stops after about n/2
-// steps. m must lie within the window's range, as the median does. The
-// window must not be empty.
+// mad returns the median of |x - m| over the window in O(log n). m must lie
+// within the window's range, as the median does. The window must not be
+// empty.
+//
+// Splitting the sorted window at m gives two ascending runs of deviations:
+//
+//	below(i) = m - s[r-1-i]  for i in [0, r)    (values below m, nearest first)
+//	above(i) = s[r+i] - m    for i in [0, n-r)  (values at or above m)
+//
+// The k = n/2 smallest deviations are the first a of one run and the first
+// k-a of the other, and a is found by binary search, as when selecting the
+// k-th smallest of two sorted arrays. The next deviation after them is the
+// one at rank n/2, and for an even n the largest of them is at rank n/2-1.
 func (w *sortedWindow) mad(m float64) float64 {
 	s, n := w.sorted[:w.count], w.count
-	r := sort.SearchFloat64s(s, m)
-	l := r - 1
-	var prev, cur float64
-	for k := 0; k <= n/2; k++ {
-		prev = cur
-		if l >= 0 && (r >= n || m-s[l] <= s[r]-m) {
-			cur = m - s[l]
-			l--
+	r := sort.SearchFloat64s(s, m) // s[:r] < m <= s[r:]
+	nAbove := n - r
+	k := n / 2
+
+	// Find the smallest a for which taking a from below and k-a from above
+	// is not too few from below, that is, below(a) >= above(k-a-1). Inside
+	// the loop both indexes are in range.
+	lo, hi := max(0, k-nAbove), min(k, r)
+	for lo < hi {
+		a := (lo + hi) / 2
+		if m-s[r-1-a] < s[r+k-a-1]-m {
+			lo = a + 1
 		} else {
-			cur = s[r] - m
-			r++
+			hi = a
 		}
 	}
-	if n%2 == 1 {
-		return cur
+	a, b := lo, k-lo
+
+	// The deviation at rank n/2: the smaller of the next one in each run.
+	// a+b < n, so at least one run has one left.
+	next := math.Inf(1)
+	if a < r {
+		next = m - s[r-1-a]
 	}
-	return midpoint(prev, cur)
+	if b < nAbove {
+		next = min(next, s[r+b]-m)
+	}
+	if n%2 == 1 {
+		return next
+	}
+
+	// The deviation at rank n/2-1: the larger of the last one taken from
+	// each run. k >= 1 here, so at least one run had one taken.
+	last := math.Inf(-1)
+	if a > 0 {
+		last = m - s[r-a]
+	}
+	if b > 0 {
+		last = max(last, s[r+b-1]-m)
+	}
+	return midpoint(last, next)
 }
 
 // countBelow returns the number of values in the window less than x.
