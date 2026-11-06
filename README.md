@@ -12,6 +12,7 @@ Push-based technical analysis indicators in Go. Import as `ta "github.com/fedorw
 - Volatility: ATR, Bollinger Bands, Donchian Channels, StdDev, RealizedVol
 - Volume: OBV, VWAP, MFI
 - Bar features: CLV, EfficiencyRatio, RangeExpansion, RelVolume
+- Regression: LinRegSlope, Regression, Correl
 
 ## Processor Interface
 
@@ -102,6 +103,16 @@ Both robust variants clamp their output to ±`RobustZCap` (10). When the MAD is 
 - `RelVolume(period)` is the candle's volume divided by the median volume of the `period` candles before it. It is ready from candle `period+1`.
 
 The baselines of `RangeExpansion` and `RelVolume` leave out the current candle, so a spike cannot dilute its own baseline. Both return 0 when the baseline is 0.
+
+## Regression
+
+`Regression(period)` and `Correl(period)` take a `Pair{X, Y}` per input, for example a price change and the order-flow imbalance of the same bar:
+
+- `Regression` returns a `RegressionValue`: the `Slope` and `Intercept` of the ordinary least squares fit of Y on X over the last `period` pairs, and its `R2`. This is a plain OLS fit of the raw values, not TA-Lib's BETA, which regresses the percentage changes of two price series.
+- `Correl` returns the Pearson correlation of X and Y over the window, as TA-Lib's CORREL does.
+- `LinRegSlope(period)` takes plain values and returns the slope of the least squares line through the last `period` of them against their position, as TA-Lib's LINEARREG_SLOPE does.
+
+All three are ready from input `period`. When every X in the window is equal, the slope is undefined, so `Regression` returns slope 0, intercept ȳ and R² 0. When every Y is equal, the slope and R² are 0. `Correl` returns 0 when either side is constant, and `LinRegSlope` returns 0 for a flat window. The running sums are anchored at the window means and recomputed exactly as the window wraps, so the results stay accurate for prices near 1e5 and over long streams.
 
 ## Reference tests
 

@@ -30,5 +30,9 @@
 // how a candle's true range and volume compare with the median of the
 // candles before it.
 //
+// Regression and Correl fit and correlate two series given as Pair values,
+// and LinRegSlope fits a single series against its position. Regression is
+// plain least squares on the raw values, not TA-Lib's BETA.
+//
 // Indicators are not safe for concurrent use.
 package ta
