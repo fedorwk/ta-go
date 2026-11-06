@@ -17,7 +17,10 @@
 // processor computes over the values before the current one.
 //
 // Median, MAD and PercentRank are rolling order statistics, kept on a sorted
-// copy of the window. They do not support NaN inputs.
+// copy of the window. RobustZ and RobustZPrior build a z-score from the
+// median and MAD in the same way, clamped to ±RobustZCap. None of them
+// support NaN inputs. ZScore is the counterpart that uses the mean and
+// standard deviation.
 //
 // Indicators are not safe for concurrent use.
 package ta

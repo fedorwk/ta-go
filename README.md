@@ -5,7 +5,7 @@ Push-based technical analysis indicators in Go. Import as `ta "github.com/fedorw
 ## Indicators
 
 - Window primitives: Max, Min, Sum, Lag, TrueRange
-- Statistics: Median, MAD, PercentRank
+- Statistics: Median, MAD, PercentRank, ZScore, RobustZ, RobustZPrior
 - Moving averages: SMA, WMA, EMA, and MA with a selectable type (including Wilder's RMA)
 - Momentum: RSI, MACD, Stochastic Oscillator (fast and full), Stochastic RSI, Williams %R, CCI, ROC, Momentum
 - Trend: ADX with +DI/-DI
@@ -79,6 +79,15 @@ for _, c := range candles {
 ```
 
 The processor that `Chain` returns also has a `Reset` method, which resets each stage that has one. Reach it with `p.(interface{ Reset() })`.
+
+## Z-scores
+
+`ZScore` scores each value against the mean and population standard deviation of its window. `RobustZ` and `RobustZPrior` use the median and the MAD scaled by 1.4826 instead, so one outlier barely moves the baseline:
+
+- `RobustZ(period)` includes the current value in its window and is ready from input `period`.
+- `RobustZPrior(period)` scores the current value against the `period` values before it, so it never affects its own baseline. It is ready from input `period+1`. Use it to detect spikes.
+
+Both robust variants clamp their output to ±`RobustZCap` (10). When the MAD is 0, which happens whenever more than half the window is equal, a value scores 0 if it equals the median and ±`RobustZCap` otherwise.
 
 ## Reference tests
 

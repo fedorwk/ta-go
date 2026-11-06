@@ -283,14 +283,17 @@ func TestMidpoint(t *testing.T) {
 	}
 }
 
-// TestOrderStatsNoAllocs checks that Process does not allocate, during
-// warm-up or once the window is full.
-func TestOrderStatsNoAllocs(t *testing.T) {
+// TestStatsNoAllocs checks that Process does not allocate, during warm-up or
+// once the window is full.
+func TestStatsNoAllocs(t *testing.T) {
 	input := randomWalk(1, 200)
 	processors := map[string]Processor[float64, float64]{
-		"Median":      MustNewMedian(61),
-		"MAD":         MustNewMAD(61),
-		"PercentRank": MustNewPercentRank(61),
+		"Median":       MustNewMedian(61),
+		"MAD":          MustNewMAD(61),
+		"PercentRank":  MustNewPercentRank(61),
+		"RobustZ":      MustNewRobustZ(61),
+		"RobustZPrior": MustNewRobustZPrior(61),
+		"ZScore":       MustNewZScore(61),
 	}
 	for name, p := range processors {
 		i := 0
@@ -310,6 +313,7 @@ func TestOrderStatsNaNNoPanic(t *testing.T) {
 	for _, period := range []int{1, 2, 3, 20} {
 		for pos := 0; pos < period+1; pos++ {
 			med, mad, pr := MustNewMedian(period), MustNewMAD(period), MustNewPercentRank(period)
+			rz, rzp := MustNewRobustZ(period), MustNewRobustZPrior(period)
 			for i := 0; i < 3*period+2; i++ {
 				v := float64(i % 5)
 				if i == pos {
@@ -318,6 +322,8 @@ func TestOrderStatsNaNNoPanic(t *testing.T) {
 				med.Process(v)
 				mad.Process(v)
 				pr.Process(v)
+				rz.Process(v)
+				rzp.Process(v)
 			}
 		}
 	}
