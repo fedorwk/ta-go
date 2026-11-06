@@ -56,6 +56,7 @@ func TestReset(t *testing.T) {
 	t.Run("ZScore", testReset(func() resettable[float64, float64] { return MustNewZScore(14) }, values))
 	t.Run("LogReturn", testReset(func() resettable[float64, float64] { return MustNewLogReturn(10) }, values))
 	t.Run("RealizedVol", testReset(func() resettable[float64, float64] { return MustNewRealizedVol(14) }, values))
+	t.Run("EfficiencyRatio", testReset(func() resettable[float64, float64] { return MustNewEfficiencyRatio(10) }, values))
 	t.Run("MACD", testReset(func() resettable[float64, MACDValue] { return MustNewMACD(12, 26, 9) }, values))
 	t.Run("StochRSI", testReset(func() resettable[float64, StochValue] { return MustNewStochRSI(14, 14, 3) }, values))
 	for _, mt := range allMATypes {
@@ -70,10 +71,13 @@ func TestReset(t *testing.T) {
 	t.Run("ADX", testReset(func() resettable[OHLC, ADXValue] { return MustNewADX(14) }, ohlc))
 	t.Run("WillR", testReset(func() resettable[OHLC, float64] { return MustNewWillR(14) }, ohlc))
 	t.Run("CCI", testReset(func() resettable[OHLC, float64] { return MustNewCCI(20) }, ohlc))
+	t.Run("CLV", testReset(func() resettable[OHLC, float64] { return MustNewCLV() }, ohlc))
+	t.Run("RangeExpansion", testReset(func() resettable[OHLC, float64] { return MustNewRangeExpansion(14) }, ohlc))
 	t.Run("Donchian", testReset(func() resettable[OHLC, Bands] { return MustNewDonchian(20) }, ohlc))
 
 	t.Run("OBV", testReset(func() resettable[OHLCV, float64] { return MustNewOBV() }, ohlcv))
 	t.Run("VWAP", testReset(func() resettable[OHLCV, float64] { return MustNewVWAP() }, ohlcv))
+	t.Run("RelVolume", testReset(func() resettable[OHLCV, float64] { return MustNewRelVolume(14) }, ohlcv))
 	t.Run("MFI", testReset(func() resettable[OHLCV, float64] { return MustNewMFI(14) }, ohlcv))
 
 	t.Run("Chain", testReset(func() resettable[float64, float64] {

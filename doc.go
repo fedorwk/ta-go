@@ -25,5 +25,10 @@
 // LogReturn and RealizedVol work on log returns, and treat a return that
 // involves a value ≤ 0 as 0.
 //
+// CLV, EfficiencyRatio, RangeExpansion and RelVolume describe the shape of
+// bars: where a candle closed in its range, how directly a series moved, and
+// how a candle's true range and volume compare with the median of the
+// candles before it.
+//
 // Indicators are not safe for concurrent use.
 package ta

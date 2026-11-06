@@ -11,6 +11,7 @@ Push-based technical analysis indicators in Go. Import as `ta "github.com/fedorw
 - Trend: ADX with +DI/-DI
 - Volatility: ATR, Bollinger Bands, Donchian Channels, StdDev, RealizedVol
 - Volume: OBV, VWAP, MFI
+- Bar features: CLV, EfficiencyRatio, RangeExpansion, RelVolume
 
 ## Processor Interface
 
@@ -92,6 +93,15 @@ Both robust variants clamp their output to ±`RobustZCap` (10). When the MAD is 
 ## Returns and volatility
 
 `LogReturn(period)` is ln(x / x₋period), the continuously compounded counterpart of `ROC`, and is ready from input `period+1`. `RealizedVol(period)` is √(Σ r²) over the last `period` one-step log returns, ready from input `period+1`. It is neither annualised nor de-meaned. To annualise, scale by √(periods per year / `period`). Both treat a return that involves a value ≤ 0 as 0.
+
+## Bar features
+
+- `CLV` is the close location value, (C − L) / (H − L), which runs from 0 at the low to 1 at the high. It is ready on every candle. It returns 0.5 when H = L and clamps a close outside the range. TA-Lib's signed form is `2·CLV − 1`, and multiplying that by volume gives one step of the AD line.
+- `EfficiencyRatio(period)` is |x − x₋period| divided by the sum of |Δx| over those `period` steps. It is 1 for a one-way move, near 0 for chop, and 0 for a flat window. It is ready from input `period+1`.
+- `RangeExpansion(period)` is the candle's true range divided by the median true range of the `period` candles before it. The first true range comes on the 2nd candle, so it is ready from candle `period+2`.
+- `RelVolume(period)` is the candle's volume divided by the median volume of the `period` candles before it. It is ready from candle `period+1`.
+
+The baselines of `RangeExpansion` and `RelVolume` leave out the current candle, so a spike cannot dilute its own baseline. Both return 0 when the baseline is 0.
 
 ## Reference tests
 
