@@ -36,6 +36,7 @@ func TestReset(t *testing.T) {
 	values := randomWalk(1, 300)
 	ohlc := randomOHLC(1, 300)
 	ohlcv := randomCandles(1, 300)
+	pairs := makePairs(randomWalk(1, 300), randomWalk(2, 300))
 
 	t.Run("SMA", testReset(func() resettable[float64, float64] { return MustNewSMA(14) }, values))
 	t.Run("EMA", testReset(func() resettable[float64, float64] { return MustNewEMA(14) }, values))
@@ -57,6 +58,7 @@ func TestReset(t *testing.T) {
 	t.Run("LogReturn", testReset(func() resettable[float64, float64] { return MustNewLogReturn(10) }, values))
 	t.Run("RealizedVol", testReset(func() resettable[float64, float64] { return MustNewRealizedVol(14) }, values))
 	t.Run("EfficiencyRatio", testReset(func() resettable[float64, float64] { return MustNewEfficiencyRatio(10) }, values))
+	t.Run("LinRegSlope", testReset(func() resettable[float64, float64] { return MustNewLinRegSlope(14) }, values))
 	t.Run("MACD", testReset(func() resettable[float64, MACDValue] { return MustNewMACD(12, 26, 9) }, values))
 	t.Run("StochRSI", testReset(func() resettable[float64, StochValue] { return MustNewStochRSI(14, 14, 3) }, values))
 	for _, mt := range allMATypes {
@@ -79,6 +81,9 @@ func TestReset(t *testing.T) {
 	t.Run("VWAP", testReset(func() resettable[OHLCV, float64] { return MustNewVWAP() }, ohlcv))
 	t.Run("RelVolume", testReset(func() resettable[OHLCV, float64] { return MustNewRelVolume(14) }, ohlcv))
 	t.Run("MFI", testReset(func() resettable[OHLCV, float64] { return MustNewMFI(14) }, ohlcv))
+
+	t.Run("Regression", testReset(func() resettable[Pair, RegressionValue] { return MustNewRegression(14) }, pairs))
+	t.Run("Correl", testReset(func() resettable[Pair, float64] { return MustNewCorrel(14) }, pairs))
 
 	t.Run("Chain", testReset(func() resettable[float64, float64] {
 		return Chain(MustNewRSI(14), MustNewEMA(5)).(resettable[float64, float64])

@@ -141,3 +141,24 @@ func BenchmarkRelVolume(b *testing.B) {
 		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewRelVolume(p), input) })
 	}
 }
+
+func BenchmarkLinRegSlope(b *testing.B) {
+	input := randomWalk(1, 4096)
+	for _, p := range benchPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewLinRegSlope(p), input) })
+	}
+}
+
+func BenchmarkRegression(b *testing.B) {
+	input := makePairs(randomWalk(1, 4096), randomWalk(2, 4096))
+	for _, p := range benchPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewRegression(p), input) })
+	}
+}
+
+func BenchmarkCorrel(b *testing.B) {
+	input := makePairs(randomWalk(1, 4096), randomWalk(2, 4096))
+	for _, p := range benchPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewCorrel(p), input) })
+	}
+}
