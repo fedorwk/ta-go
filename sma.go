@@ -5,7 +5,9 @@ type SMA struct {
 	state *smaState
 }
 
-// smaState maintains a rolling simple moving average.
+// smaState maintains the sum and mean of a sliding window. The running sum is
+// recomputed exactly from the window each time the ring wraps, so rounding
+// error cannot accumulate over long streams; the cost stays amortized O(1).
 type smaState struct {
 	period int
 	window []float64
@@ -23,14 +25,20 @@ func newSMAState(period int) *smaState {
 
 // Push adds a value and returns the SMA when ready.
 func (s *smaState) Push(v float64) (float64, bool) {
+	if !s.add(v) {
+		return 0, false
+	}
+	return s.sum / float64(s.period), true
+}
+
+// add adds a value to the window and reports whether the window is full, in
+// which case sum holds the sum of the last period values.
+func (s *smaState) add(v float64) bool {
 	if s.count < s.period {
 		s.window[s.count] = v
 		s.sum += v
 		s.count++
-		if s.count == s.period {
-			return s.sum / float64(s.period), true
-		}
-		return 0, false
+		return s.count == s.period
 	}
 
 	s.sum -= s.window[s.idx]
@@ -39,9 +47,18 @@ func (s *smaState) Push(v float64) (float64, bool) {
 	s.idx++
 	if s.idx == s.period {
 		s.idx = 0
+		s.recompute()
 	}
+	return true
+}
 
-	return s.sum / float64(s.period), true
+// recompute sets sum exactly from the window.
+func (s *smaState) recompute() {
+	sum := 0.0
+	for _, x := range s.window {
+		sum += x
+	}
+	s.sum = sum
 }
 
 // Reset empties the window.

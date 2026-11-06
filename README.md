@@ -4,6 +4,7 @@ Push-based technical analysis indicators in Go. Import as `ta "github.com/fedorw
 
 ## Indicators
 
+- Window primitives: Max, Min, Sum, Lag, TrueRange
 - Moving averages: SMA, WMA, EMA, and MA with a selectable type (including Wilder's RMA)
 - Momentum: RSI, MACD, Stochastic Oscillator (fast and full), Stochastic RSI, Williams %R, CCI, ROC, Momentum
 - Trend: ADX with +DI/-DI
@@ -37,6 +38,8 @@ for _, v := range []float64{1, 2, 3, 4, 5} {
 smoothedRSI := ta.Chain(ta.MustNewRSI(14), ta.MustNewSMA(5))
 typicalSMA := ta.Chain(ta.HLC3, ta.MustNewSMA(20)) // Processor[ta.OHLC, float64]
 ```
+
+`Lag` delays a series, so chaining it in front of a window processor computes over the values before the current one. For example, `ta.Chain(ta.MustNewLag(1), ta.MustNewMax(20))` is the highest of the 20 values before the current one.
 
 `Apply` runs a processor over a slice and returns the ready outputs.
 

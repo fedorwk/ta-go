@@ -44,6 +44,10 @@ func TestReset(t *testing.T) {
 	t.Run("RSI", testReset(func() resettable[float64, float64] { return MustNewRSI(14) }, values))
 	t.Run("ROC", testReset(func() resettable[float64, float64] { return MustNewROC(10) }, values))
 	t.Run("Mom", testReset(func() resettable[float64, float64] { return MustNewMom(10) }, values))
+	t.Run("Max", testReset(func() resettable[float64, float64] { return MustNewMax(14) }, values))
+	t.Run("Min", testReset(func() resettable[float64, float64] { return MustNewMin(14) }, values))
+	t.Run("Sum", testReset(func() resettable[float64, float64] { return MustNewSum(14) }, values))
+	t.Run("Lag", testReset(func() resettable[float64, float64] { return MustNewLag(14) }, values))
 	t.Run("MACD", testReset(func() resettable[float64, MACDValue] { return MustNewMACD(12, 26, 9) }, values))
 	t.Run("StochRSI", testReset(func() resettable[float64, StochValue] { return MustNewStochRSI(14, 14, 3) }, values))
 	for _, mt := range allMATypes {
@@ -53,6 +57,7 @@ func TestReset(t *testing.T) {
 	}
 
 	t.Run("Stoch", testReset(func() resettable[OHLC, StochValue] { return MustNewStoch(14, 3) }, ohlc))
+	t.Run("TrueRange", testReset(func() resettable[OHLC, float64] { return MustNewTrueRange() }, ohlc))
 	t.Run("ATR", testReset(func() resettable[OHLC, float64] { return MustNewATR(14) }, ohlc))
 	t.Run("ADX", testReset(func() resettable[OHLC, ADXValue] { return MustNewADX(14) }, ohlc))
 	t.Run("WillR", testReset(func() resettable[OHLC, float64] { return MustNewWillR(14) }, ohlc))

@@ -5,14 +5,54 @@ import (
 	"testing"
 )
 
+// benchProcessor feeds input to p in a loop, b.N values in all.
+func benchProcessor[I, O any](b *testing.B, p Processor[I, O], input []I) {
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		p.Process(input[i%len(input)])
+	}
+}
+
+var benchPeriods = []int{14, 200}
+
 func BenchmarkStoch(b *testing.B) {
 	input := randomOHLC(1, 4096)
-	for _, k := range []int{14, 200} {
+	for _, k := range benchPeriods {
 		b.Run(fmt.Sprintf("k=%d", k), func(b *testing.B) {
-			st := MustNewStoch(k, 3)
-			for i := 0; i < b.N; i++ {
-				st.Process(input[i%len(input)])
-			}
+			benchProcessor(b, MustNewStoch(k, 3), input)
 		})
 	}
+}
+
+func BenchmarkMax(b *testing.B) {
+	input := randomWalk(1, 4096)
+	for _, p := range benchPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewMax(p), input) })
+	}
+}
+
+func BenchmarkMin(b *testing.B) {
+	input := randomWalk(1, 4096)
+	for _, p := range benchPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewMin(p), input) })
+	}
+}
+
+func BenchmarkSum(b *testing.B) {
+	input := randomWalk(1, 4096)
+	for _, p := range benchPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewSum(p), input) })
+	}
+}
+
+func BenchmarkLag(b *testing.B) {
+	input := randomWalk(1, 4096)
+	for _, p := range benchPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewLag(p), input) })
+	}
+}
+
+func BenchmarkTrueRange(b *testing.B) {
+	benchProcessor(b, MustNewTrueRange(), randomOHLC(1, 4096))
 }

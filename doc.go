@@ -12,5 +12,9 @@
 // that smooth with a configurable moving average take an MAType.
 //
 // Chain composes processors, and Source adapts OHLC candles to indicators
-// that consume plain values. Indicators are not safe for concurrent use.
+// that consume plain values. The window primitives Max, Min, Sum, Lag and
+// TrueRange are building blocks for such chains; Lag in front of a window
+// processor computes over the values before the current one.
+//
+// Indicators are not safe for concurrent use.
 package ta
