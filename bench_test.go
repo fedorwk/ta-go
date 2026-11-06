@@ -81,3 +81,24 @@ func BenchmarkPercentRank(b *testing.B) {
 		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewPercentRank(p), input) })
 	}
 }
+
+func BenchmarkRobustZ(b *testing.B) {
+	input := randomWalk(1, 4096)
+	for _, p := range orderStatPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewRobustZ(p), input) })
+	}
+}
+
+func BenchmarkRobustZPrior(b *testing.B) {
+	input := randomWalk(1, 4096)
+	for _, p := range orderStatPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewRobustZPrior(p), input) })
+	}
+}
+
+func BenchmarkZScore(b *testing.B) {
+	input := randomWalk(1, 4096)
+	for _, p := range orderStatPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewZScore(p), input) })
+	}
+}
