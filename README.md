@@ -7,9 +7,9 @@ Push-based technical analysis indicators in Go. Import as `ta "github.com/fedorw
 - Window primitives: Max, Min, Sum, Lag, TrueRange
 - Statistics: Median, MAD, PercentRank, ZScore, RobustZ, RobustZPrior
 - Moving averages: SMA, WMA, EMA, and MA with a selectable type (including Wilder's RMA)
-- Momentum: RSI, MACD, Stochastic Oscillator (fast and full), Stochastic RSI, Williams %R, CCI, ROC, Momentum
+- Momentum: RSI, MACD, Stochastic Oscillator (fast and full), Stochastic RSI, Williams %R, CCI, ROC, LogReturn, Momentum
 - Trend: ADX with +DI/-DI
-- Volatility: ATR, Bollinger Bands, Donchian Channels, StdDev
+- Volatility: ATR, Bollinger Bands, Donchian Channels, StdDev, RealizedVol
 - Volume: OBV, VWAP, MFI
 
 ## Processor Interface
@@ -88,6 +88,10 @@ The processor that `Chain` returns also has a `Reset` method, which resets each 
 - `RobustZPrior(period)` scores the current value against the `period` values before it, so it never affects its own baseline. It is ready from input `period+1`. Use it to detect spikes.
 
 Both robust variants clamp their output to ±`RobustZCap` (10). When the MAD is 0, which happens whenever more than half the window is equal, a value scores 0 if it equals the median and ±`RobustZCap` otherwise.
+
+## Returns and volatility
+
+`LogReturn(period)` is ln(x / x₋period), the continuously compounded counterpart of `ROC`, and is ready from input `period+1`. `RealizedVol(period)` is √(Σ r²) over the last `period` one-step log returns, ready from input `period+1`. It is neither annualised nor de-meaned. To annualise, scale by √(periods per year / `period`). Both treat a return that involves a value ≤ 0 as 0.
 
 ## Reference tests
 

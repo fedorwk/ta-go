@@ -54,6 +54,8 @@ func TestReset(t *testing.T) {
 	t.Run("RobustZ", testReset(func() resettable[float64, float64] { return MustNewRobustZ(14) }, values))
 	t.Run("RobustZPrior", testReset(func() resettable[float64, float64] { return MustNewRobustZPrior(14) }, values))
 	t.Run("ZScore", testReset(func() resettable[float64, float64] { return MustNewZScore(14) }, values))
+	t.Run("LogReturn", testReset(func() resettable[float64, float64] { return MustNewLogReturn(10) }, values))
+	t.Run("RealizedVol", testReset(func() resettable[float64, float64] { return MustNewRealizedVol(14) }, values))
 	t.Run("MACD", testReset(func() resettable[float64, MACDValue] { return MustNewMACD(12, 26, 9) }, values))
 	t.Run("StochRSI", testReset(func() resettable[float64, StochValue] { return MustNewStochRSI(14, 14, 3) }, values))
 	for _, mt := range allMATypes {

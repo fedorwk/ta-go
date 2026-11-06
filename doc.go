@@ -22,5 +22,8 @@
 // support NaN inputs. ZScore is the counterpart that uses the mean and
 // standard deviation.
 //
+// LogReturn and RealizedVol work on log returns, and treat a return that
+// involves a value ≤ 0 as 0.
+//
 // Indicators are not safe for concurrent use.
 package ta
