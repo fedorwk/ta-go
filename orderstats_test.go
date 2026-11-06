@@ -3,6 +3,7 @@ package ta
 import (
 	"errors"
 	"fmt"
+	"math"
 	"math/rand"
 	"slices"
 	"testing"
@@ -41,7 +42,7 @@ func bruteMedian(w []float64) float64 {
 	if n%2 == 1 {
 		return s[n/2]
 	}
-	return midpoint(s[n/2-1], s[n/2])
+	return (s[n/2-1] + s[n/2]) / 2
 }
 
 func bruteMAD(w []float64) float64 {
@@ -217,5 +218,88 @@ func TestOrderStatsInvalidPeriod(t *testing.T) {
 			}()
 			mustNewX()
 		}()
+	}
+}
+
+// bruteDeviationMedian returns the median of |x - m| over w.
+func bruteDeviationMedian(w []float64, m float64) float64 {
+	dev := make([]float64, len(w))
+	for i, x := range w {
+		if x < m {
+			dev[i] = m - x
+		} else {
+			dev[i] = x - m
+		}
+	}
+	return bruteMedian(dev)
+}
+
+// TestSortedWindowMADCentre calls sortedWindow.mad with centres other than
+// the median, including ones outside the window's range, which reach
+// branches that MAD itself never does.
+func TestSortedWindowMADCentre(t *testing.T) {
+	r := rand.New(rand.NewSource(5))
+	for trial := 0; trial < 20_000; trial++ {
+		n := 1 + r.Intn(15)
+		w := newSortedWindow(n)
+		for range n {
+			w.Push(float64(r.Intn(7)))
+		}
+		vals := w.ring[:n]
+		var m float64
+		switch r.Intn(5) {
+		case 0:
+			m = w.median()
+		case 1:
+			m = vals[r.Intn(n)]
+		case 2:
+			m = w.sorted[0] - 1 - r.Float64()*5 // below every value
+		case 3:
+			m = w.sorted[n-1] + 1 + r.Float64()*5 // above every value
+		default:
+			m = -1 + r.Float64()*8
+		}
+		if got, want := w.mad(m), bruteDeviationMedian(vals, m); got != want {
+			t.Fatalf("window %v, centre %v: mad = %v, want %v", vals, m, got, want)
+		}
+	}
+}
+
+func TestMidpoint(t *testing.T) {
+	tiny := 3e-308 // halving it first would lose precision
+	cases := []struct{ a, b, want float64 }{
+		{1, 2, 1.5},
+		{-4, 4, 0},
+		{tiny, tiny, tiny},
+		{5e-324, 5e-324, 5e-324},
+		{math.MaxFloat64, math.MaxFloat64, math.MaxFloat64},
+		{-math.MaxFloat64, -math.MaxFloat64, -math.MaxFloat64},
+		{math.MaxFloat64, -math.MaxFloat64, 0},
+	}
+	for _, c := range cases {
+		if got := midpoint(c.a, c.b); got != c.want {
+			t.Errorf("midpoint(%v, %v) = %v, want %v", c.a, c.b, got, c.want)
+		}
+	}
+}
+
+// TestOrderStatsNoAllocs checks that Process does not allocate, during
+// warm-up or once the window is full.
+func TestOrderStatsNoAllocs(t *testing.T) {
+	input := randomWalk(1, 200)
+	processors := map[string]Processor[float64, float64]{
+		"Median":      MustNewMedian(61),
+		"MAD":         MustNewMAD(61),
+		"PercentRank": MustNewPercentRank(61),
+	}
+	for name, p := range processors {
+		i := 0
+		allocs := testing.AllocsPerRun(len(input)-1, func() {
+			p.Process(input[i%len(input)])
+			i++
+		})
+		if allocs != 0 {
+			t.Errorf("%s.Process: %v allocs per call, want 0", name, allocs)
+		}
 	}
 }

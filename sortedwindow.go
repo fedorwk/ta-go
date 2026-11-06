@@ -83,9 +83,9 @@ func (w *sortedWindow) median() float64 {
 	return midpoint(w.sorted[n/2-1], w.sorted[n/2])
 }
 
-// mad returns the median of |x - m| over the window in O(log n). m must lie
-// within the window's range, as the median does. The window must not be
-// empty.
+// mad returns the median of |x - m| over the window in O(log n). m need
+// not be the window's median or lie within its range: any m for which the
+// deviations are finite works. The window must not be empty.
 //
 // Splitting the sorted window at m gives two ascending runs of deviations:
 //
@@ -153,8 +153,12 @@ func (w *sortedWindow) countEqual(x float64) int {
 	return above - sort.SearchFloat64s(s, x)
 }
 
-// midpoint returns (a+b)/2 without overflowing for large finite a and b.
-// Halving is exact for normal floats, so this rounds the same as (a+b)/2.
+// midpoint returns (a+b)/2, correctly rounded, for finite a and b. Only when
+// a+b overflows does it halve first; both values are then far above the
+// subnormal range, so halving them is exact.
 func midpoint(a, b float64) float64 {
+	if s := a + b; !math.IsInf(s, 0) {
+		return s / 2
+	}
 	return a/2 + b/2
 }
