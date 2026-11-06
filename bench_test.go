@@ -116,3 +116,28 @@ func BenchmarkRealizedVol(b *testing.B) {
 		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewRealizedVol(p), input) })
 	}
 }
+
+func BenchmarkCLV(b *testing.B) {
+	benchProcessor(b, MustNewCLV(), randomOHLC(1, 4096))
+}
+
+func BenchmarkEfficiencyRatio(b *testing.B) {
+	input := randomWalk(1, 4096)
+	for _, p := range benchPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewEfficiencyRatio(p), input) })
+	}
+}
+
+func BenchmarkRangeExpansion(b *testing.B) {
+	input := randomOHLC(1, 4096)
+	for _, p := range orderStatPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewRangeExpansion(p), input) })
+	}
+}
+
+func BenchmarkRelVolume(b *testing.B) {
+	input := randomCandles(1, 4096)
+	for _, p := range orderStatPeriods {
+		b.Run(fmt.Sprintf("period=%d", p), func(b *testing.B) { benchProcessor(b, MustNewRelVolume(p), input) })
+	}
+}
