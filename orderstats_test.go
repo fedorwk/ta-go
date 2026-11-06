@@ -303,3 +303,22 @@ func TestOrderStatsNoAllocs(t *testing.T) {
 		}
 	}
 }
+
+// NaN is unsupported and gives undefined results, but must not panic, even
+// when it is evicted from a full window.
+func TestOrderStatsNaNNoPanic(t *testing.T) {
+	for _, period := range []int{1, 2, 3, 20} {
+		for pos := 0; pos < period+1; pos++ {
+			med, mad, pr := MustNewMedian(period), MustNewMAD(period), MustNewPercentRank(period)
+			for i := 0; i < 3*period+2; i++ {
+				v := float64(i % 5)
+				if i == pos {
+					v = math.NaN()
+				}
+				med.Process(v)
+				mad.Process(v)
+				pr.Process(v)
+			}
+		}
+	}
+}

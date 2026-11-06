@@ -52,6 +52,11 @@ func (w *sortedWindow) Push(v float64) bool {
 	// old is in sorted, so sorted[i] == old. Replace it with v by shifting
 	// the values between the two positions one place towards i.
 	i := sort.SearchFloat64s(w.sorted, old)
+	if i == w.period {
+		// Only when old is NaN, which matches nothing: keep the results
+		// undefined rather than indexing past the end of sorted.
+		i = w.period - 1
+	}
 	j := sort.SearchFloat64s(w.sorted, v)
 	if j <= i {
 		copy(w.sorted[j+1:i+1], w.sorted[j:i])
