@@ -48,6 +48,9 @@ func TestReset(t *testing.T) {
 	t.Run("Min", testReset(func() resettable[float64, float64] { return MustNewMin(14) }, values))
 	t.Run("Sum", testReset(func() resettable[float64, float64] { return MustNewSum(14) }, values))
 	t.Run("Lag", testReset(func() resettable[float64, float64] { return MustNewLag(14) }, values))
+	t.Run("Median", testReset(func() resettable[float64, float64] { return MustNewMedian(14) }, values))
+	t.Run("MAD", testReset(func() resettable[float64, float64] { return MustNewMAD(14) }, values))
+	t.Run("PercentRank", testReset(func() resettable[float64, float64] { return MustNewPercentRank(14) }, values))
 	t.Run("MACD", testReset(func() resettable[float64, MACDValue] { return MustNewMACD(12, 26, 9) }, values))
 	t.Run("StochRSI", testReset(func() resettable[float64, StochValue] { return MustNewStochRSI(14, 14, 3) }, values))
 	for _, mt := range allMATypes {
